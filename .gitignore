@@ -1,0 +1,12 @@
+.DS_Store
+.env*
+!.env.example
+dist
+node_modules
+.next
+example/dist
+*.log
+*.tgz
+*.tsbuildinfo
+.eslintcache
+.convex
