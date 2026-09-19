@@ -16,3 +16,20 @@ export function boundedJson(value: unknown, maxBytes = 16_384) {
   if (new TextEncoder().encode(json).length > maxBytes) throw new Error("Saved view is too large");
   return json;
 }
+
+export function buildKpiSearchText(summary: {
+  indicatorKey: string;
+  label: string;
+  description: string;
+  domain: string;
+}) {
+  return `${summary.indicatorKey} ${summary.label} ${summary.description} ${summary.domain}`.toLocaleLowerCase("it");
+}
+
+export function matchesKpiSearch(
+  item: { indicatorKey: string; searchText: string },
+  search: string | undefined,
+) {
+  if (!search) return true;
+  return item.indicatorKey.toLocaleLowerCase("it").includes(search) || item.searchText.includes(search);
+}

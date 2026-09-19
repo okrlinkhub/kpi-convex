@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server.js";
-import { ensureState, getState } from "./lib.js";
+import { buildKpiSearchText, ensureState, getState } from "./lib.js";
 import { errorCodeValidator, pointValidator } from "./validators.js";
 
 const catalogItemArgs = {
@@ -11,7 +11,27 @@ const catalogItemArgs = {
 
 export const getRuntimeState = internalQuery({
   args: {},
-  handler: async (ctx) => await getState(ctx),
+  handler: async (ctx) => {
+    const state = await getState(ctx);
+    if (!state) return null;
+    let selectedReleaseFingerprint: string | null = null;
+    if (state.candidateReleaseId) {
+      selectedReleaseFingerprint =
+        (await ctx.db.get("catalogReleases", state.candidateReleaseId))
+          ?.fingerprint ?? null;
+    } else if (state.activeGenerationId) {
+      const generation = await ctx.db.get(
+        "projectionGenerations",
+        state.activeGenerationId,
+      );
+      if (generation) {
+        selectedReleaseFingerprint =
+          (await ctx.db.get("catalogReleases", generation.releaseId))
+            ?.fingerprint ?? null;
+      }
+    }
+    return { ...state, selectedReleaseFingerprint };
+  },
 });
 
 export const getReleaseItems = internalQuery({
@@ -45,7 +65,7 @@ export const getGeneration = internalQuery({
 export const beginCandidate = internalMutation({
   args: { releaseVersion: v.string(), generatedAt: v.string(), fingerprint: v.string(), indicatorCount: v.number() },
   handler: async (ctx, args) => {
-    const existing = await ctx.db.query("catalogReleases").withIndex("by_version", (q) => q.eq("releaseVersion", args.releaseVersion)).unique();
+    const existing = await ctx.db.query("catalogReleases").withIndex("by_version_fingerprint", (q) => q.eq("releaseVersion", args.releaseVersion).eq("fingerprint", args.fingerprint)).unique();
     if (existing) return existing._id;
     return await ctx.db.insert("catalogReleases", { ...args, status: "candidate", importedAt: Date.now() });
   },
@@ -112,7 +132,7 @@ export const writeProjectionBatch = internalMutation({
     for (const row of rows) {
       const existing = await ctx.db.query("kpiReadModels").withIndex("by_generation_key", (q) => q.eq("generationId", generationId).eq("indicatorKey", row.indicatorKey)).unique();
       if (existing) continue;
-      await ctx.db.insert("kpiReadModels", { generationId, indicatorKey: row.indicatorKey, domain: row.summary.domain, searchText: `${row.summary.label} ${row.summary.description} ${row.summary.domain}`.toLowerCase(), summary: row.summary });
+      await ctx.db.insert("kpiReadModels", { generationId, indicatorKey: row.indicatorKey, domain: row.summary.domain, searchText: buildKpiSearchText(row.summary), summary: row.summary });
       for (const point of row.points) await ctx.db.insert("kpiPoints", { generationId, indicatorKey: row.indicatorKey, point });
       inserted += 1;
     }

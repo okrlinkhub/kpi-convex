@@ -1,6 +1,5 @@
 "use client";
 import { createKpiReactBindings } from "@okrlinkhub/kpi-convex/react";
-import { useRouter } from "next/navigation";
 import { api } from "../convex/_generated/api";
 
 const KpiUi = createKpiReactBindings({
@@ -10,16 +9,23 @@ const KpiUi = createKpiReactBindings({
   getLiveDetail: api.kpi.getLiveDetail,
   favoritesList: api.kpi.favoritesList,
   favoriteToggle: api.kpi.favoriteToggle,
-  savedViewsList: api.kpi.savedViewsList,
-  savedViewSave: api.kpi.savedViewSave,
-  savedViewRemove: api.kpi.savedViewRemove,
   preferencesGet: api.kpi.preferencesGet,
   preferencesSave: api.kpi.preferencesSave,
   syncStatus: api.kpi.syncStatus,
+  dashboardList: api.kpi.dashboardList,
+  dashboardPicker: api.kpi.dashboardPicker,
+  dashboardGet: api.kpi.dashboardGet,
+  dashboardCreate: api.kpi.dashboardCreate,
+  dashboardToggleFavorite: api.kpi.dashboardToggleFavorite,
+  dashboardRemove: api.kpi.dashboardRemove,
+  dashboardAddWidget: api.kpi.dashboardAddWidget,
+  dashboardAddWidgets: api.kpi.dashboardAddWidgets,
+  dashboardRemoveWidget: api.kpi.dashboardRemoveWidget,
+  dashboardReorderWidgets: api.kpi.dashboardReorderWidgets,
+  dashboardSetWidgetChartMode: api.kpi.dashboardSetWidgetChartMode,
 });
 export function ExampleCatalog() {
-  const router = useRouter();
-  return <KpiUi.Catalog eyebrow="COMPLY · PREVIEW LOCALE" getKpiHref={(indicatorKey) => `/kpi/${encodeURIComponent(indicatorKey)}`} onOpenKpi={(indicatorKey) => router.push(`/kpi/${encodeURIComponent(indicatorKey)}`)} />;
+  return <KpiUi.Catalog eyebrow="COMPLY · PREVIEW LOCALE" getDashboardHref={() => "/dashboards"} />;
 }
 
 export function ExampleDetail({ indicatorKey }: { indicatorKey: string }) {

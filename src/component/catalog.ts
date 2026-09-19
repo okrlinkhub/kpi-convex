@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { query } from "./_generated/server.js";
-import { getState } from "./lib.js";
+import { getState, matchesKpiSearch } from "./lib.js";
 import { summaryValidator } from "./validators.js";
 
 export const list = query({
@@ -23,7 +23,7 @@ export const list = query({
     }).take(scanSize + 1);
     const scanned = rows.slice(0, scanSize);
     const search = args.search?.trim().slice(0, 120).toLowerCase();
-    const matches = scanned.filter((item) => (!args.domain || item.domain === args.domain) && (!search || item.searchText.includes(search)));
+    const matches = scanned.filter((item) => (!args.domain || item.domain === args.domain) && matchesKpiSearch(item, search));
     const page = matches.slice(0, pageSize);
     const hasBufferedMatch = matches.length > pageSize;
     const hasMoreRows = rows.length > scanSize;

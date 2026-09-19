@@ -20,12 +20,12 @@
     "build:clean": "rm -rf dist *.tsbuildinfo && pnpm build:codegen",
     "typecheck": "tsc --noEmit && tsc --noEmit -p example/tsconfig.json && tsc --noEmit -p example/convex/tsconfig.json",
     "lint": "eslint .",
-    "test": "vitest run --typecheck",
+    "test": "pnpm build && vitest run --typecheck",
     "test:watch": "vitest --typecheck --clearScreen false",
     "prepare": "pnpm build",
     "preversion": "pnpm install --frozen-lockfile && pnpm build:clean && pnpm test && pnpm lint && pnpm typecheck"
   },
-  "files": ["dist", "src"],
+  "files": ["CHANGELOG.md", "dist", "src"],
   "exports": {
     "./package.json": "./package.json",
     ".": { "types": "./dist/client/index.d.ts", "default": "./dist/client/index.js" },
@@ -33,7 +33,7 @@
     "./contracts": { "types": "./dist/contracts/index.d.ts", "default": "./dist/contracts/index.js" },
     "./react": { "types": "./dist/react/index.d.ts", "default": "./dist/react/index.js" },
     "./styles.css": "./dist/react/styles.css",
-    "./test": "./src/test.ts",
+    "./test": { "types": "./dist/test.d.ts", "default": "./dist/test.js" },
     "./_generated/component.js": { "types": "./dist/component/_generated/component.d.ts" },
     "./_generated/component": { "types": "./dist/component/_generated/component.d.ts" },
     "./convex.config.js": { "types": "./dist/component/convex.config.d.ts", "default": "./dist/component/convex.config.js" },
@@ -46,7 +46,7 @@
   },
   "peerDependencies": {
     "convex": "^1.44.0",
-    "lucide-react": "^0.468.0",
+    "lucide-react": ">=0.468.0 <1",
     "react": "^18.3.1 || ^19.0.0",
     "react-dom": "^18.3.1 || ^19.0.0"
   },

@@ -52,6 +52,7 @@ type Env = {
   readonly KPI_CONVEX_R2_SECRET_ACCESS_KEY: string;
   readonly KPI_CONVEX_RELEASE_PUBLIC_KEYS_JSON: string;
   readonly KPI_CONVEX_SCOPE_VALUE: string | undefined;
+  readonly KPI_CONVEX_SOURCE_KEY: string;
   readonly KPI_CONVEX_SOURCE_PUBLIC_KEYS_JSON: string;
   readonly KPI_CONVEX_VALUES_READY_HMAC_SECRET: string;
 };

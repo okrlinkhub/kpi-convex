@@ -1,6 +1,12 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { errorCodeValidator, pointValidator, preferencesValidator, summaryValidator } from "./validators.js";
+import {
+  errorCodeValidator,
+  pointValidator,
+  preferencesValidator,
+  summaryValidator,
+  widgetChartModeValidator,
+} from "./validators.js";
 
 export default defineSchema({
   componentState: defineTable({
@@ -18,10 +24,15 @@ export default defineSchema({
     releaseVersion: v.string(),
     generatedAt: v.string(),
     fingerprint: v.string(),
-    status: v.union(v.literal("candidate"), v.literal("active"), v.literal("previous"), v.literal("failed")),
+    status: v.union(
+      v.literal("candidate"),
+      v.literal("active"),
+      v.literal("previous"),
+      v.literal("failed"),
+    ),
     indicatorCount: v.number(),
     importedAt: v.number(),
-  }).index("by_version", ["releaseVersion"]),
+  }).index("by_version_fingerprint", ["releaseVersion", "fingerprint"]),
   catalogItems: defineTable({
     releaseId: v.id("catalogReleases"),
     indicatorKey: v.string(),
@@ -43,35 +54,90 @@ export default defineSchema({
     sourceRunId: v.string(),
     releaseId: v.id("catalogReleases"),
     releaseVersion: v.string(),
-    status: v.union(v.literal("building"), v.literal("complete"), v.literal("failed")),
+    status: v.union(
+      v.literal("building"),
+      v.literal("complete"),
+      v.literal("failed"),
+    ),
     totalKpis: v.number(),
     completedKpis: v.number(),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
     errorMessage: v.optional(v.string()),
-  }).index("by_source_run", ["sourceRunId"]).index("by_status_created", ["status", "createdAt"]),
+  })
+    .index("by_source_run", ["sourceRunId"])
+    .index("by_status_created", ["status", "createdAt"]),
   kpiReadModels: defineTable({
     generationId: v.id("projectionGenerations"),
     indicatorKey: v.string(),
     domain: v.string(),
     searchText: v.string(),
     summary: summaryValidator,
-  }).index("by_generation_key", ["generationId", "indicatorKey"]).index("by_generation_domain", ["generationId", "domain"])
-    .searchIndex("search", { searchField: "searchText", filterFields: ["generationId", "domain"] }),
+  })
+    .index("by_generation_key", ["generationId", "indicatorKey"])
+    .index("by_generation_domain", ["generationId", "domain"])
+    .searchIndex("search", {
+      searchField: "searchText",
+      filterFields: ["generationId", "domain"],
+    }),
   kpiPoints: defineTable({
     generationId: v.id("projectionGenerations"),
     indicatorKey: v.string(),
     point: pointValidator,
-  }).index("by_generation_kpi_period", ["generationId", "indicatorKey", "point.period"]),
+  }).index("by_generation_kpi_period", [
+    "generationId",
+    "indicatorKey",
+    "point.period",
+  ]),
   processedCallbacks: defineTable({
     eventId: v.string(),
     sourceRunId: v.string(),
     receivedAt: v.number(),
   }).index("by_event", ["eventId"]),
-  favorites: defineTable({ viewerKey: v.string(), indicatorKey: v.string(), createdAt: v.number() })
-    .index("by_viewer_kpi", ["viewerKey", "indicatorKey"]),
-  savedViews: defineTable({ viewerKey: v.string(), viewKey: v.string(), name: v.string(), definitionJson: v.string(), updatedAt: v.number() })
-    .index("by_viewer_key", ["viewerKey", "viewKey"]),
-  viewerPreferences: defineTable({ viewerKey: v.string(), preferences: preferencesValidator, updatedAt: v.number() })
-    .index("by_viewer", ["viewerKey"]),
+  favorites: defineTable({
+    viewerKey: v.string(),
+    indicatorKey: v.string(),
+    createdAt: v.number(),
+  }).index("by_viewer_kpi", ["viewerKey", "indicatorKey"]),
+  savedViews: defineTable({
+    viewerKey: v.string(),
+    viewKey: v.string(),
+    name: v.string(),
+    definitionJson: v.string(),
+    updatedAt: v.number(),
+  }).index("by_viewer_key", ["viewerKey", "viewKey"]),
+  viewerPreferences: defineTable({
+    viewerKey: v.string(),
+    preferences: preferencesValidator,
+    updatedAt: v.number(),
+  }).index("by_viewer", ["viewerKey"]),
+  dashboards: defineTable({
+    ownerViewerKey: v.string(),
+    name: v.string(),
+    normalizedName: v.optional(v.string()),
+    description: v.optional(v.string()),
+    status: v.union(v.literal("active"), v.literal("deleted")),
+    widgetCount: v.number(),
+    favoriteCount: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_status_updated", ["status", "updatedAt"])
+    .index("by_status_normalized_name", ["status", "normalizedName"]),
+  dashboardWidgets: defineTable({
+    dashboardId: v.id("dashboards"),
+    indicatorKey: v.string(),
+    sortOrder: v.number(),
+    chartMode: widgetChartModeValidator,
+    createdAt: v.number(),
+  })
+    .index("by_dashboard_order", ["dashboardId", "sortOrder"])
+    .index("by_dashboard_indicator", ["dashboardId", "indicatorKey"]),
+  dashboardFavorites: defineTable({
+    dashboardId: v.id("dashboards"),
+    viewerKey: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_dashboard_viewer", ["dashboardId", "viewerKey"])
+    .index("by_viewer_dashboard", ["viewerKey", "dashboardId"]),
 });

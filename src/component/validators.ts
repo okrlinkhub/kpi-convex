@@ -22,6 +22,54 @@ export const preferencesValidator = v.object({
   density: v.union(v.literal("compact"), v.literal("comfortable")),
   defaultChartMode: v.union(v.literal("line"), v.literal("bar"), v.literal("area"), v.literal("table")),
 });
+export const widgetChartModeValidator = v.union(
+  v.literal("pie"),
+  v.literal("bar"),
+  v.literal("area"),
+);
+export const dashboardFavoritePersonValidator = v.object({
+  userId: v.string(),
+  displayName: v.string(),
+  isCurrentUser: v.boolean(),
+});
+export const dashboardSummaryValidator = v.object({
+  id: v.string(),
+  name: v.string(),
+  description: v.union(v.string(), v.null()),
+  widgetCount: v.number(),
+  isFavorite: v.boolean(),
+  canEdit: v.boolean(),
+  containsIndicator: v.boolean(),
+  favoriteCount: v.number(),
+  favoritedBy: v.array(dashboardFavoritePersonValidator),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+});
+export const dashboardWidgetValidator = v.object({
+  widgetId: v.string(),
+  indicatorKey: v.string(),
+  sortOrder: v.number(),
+  label: v.string(),
+  domain: v.string(),
+  unit: v.string(),
+  current: v.union(pointValidator, v.null()),
+  previous: v.union(pointValidator, v.null()),
+  delta: v.union(v.number(), v.null()),
+  points: v.array(pointValidator),
+  chartMode: widgetChartModeValidator,
+  refreshedAt: v.union(v.number(), v.null()),
+  status: v.union(v.literal("ready"), v.literal("pending"), v.literal("missing")),
+});
+export const dashboardViewValidator = v.object({
+  id: v.string(),
+  name: v.string(),
+  description: v.union(v.string(), v.null()),
+  isFavorite: v.boolean(),
+  favoriteCount: v.number(),
+  favoritedBy: v.array(dashboardFavoritePersonValidator),
+  refreshedAt: v.union(v.number(), v.null()),
+  widgets: v.array(dashboardWidgetValidator),
+});
 export const errorCodeValidator = v.union(
   v.literal("RELEASE_NOT_FOUND"),
   v.literal("RELEASE_INVALID"),

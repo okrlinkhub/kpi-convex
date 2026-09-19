@@ -11,6 +11,8 @@
 import type * as admin from "../admin.js";
 import type * as catalog from "../catalog.js";
 import type * as crons from "../crons.js";
+import type * as dashboardNames from "../dashboardNames.js";
+import type * as dashboards from "../dashboards.js";
 import type * as favorites from "../favorites.js";
 import type * as http from "../http.js";
 import type * as internal_ from "../internal.js";
@@ -36,6 +38,8 @@ const fullApi: ApiFromModules<{
   admin: typeof admin;
   catalog: typeof catalog;
   crons: typeof crons;
+  dashboardNames: typeof dashboardNames;
+  dashboards: typeof dashboards;
   favorites: typeof favorites;
   http: typeof http;
   internal: typeof internal_;

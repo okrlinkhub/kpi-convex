@@ -8,6 +8,7 @@ export default defineComponent("kpiConvex", {
     KPI_CONVEX_R2_ACCESS_KEY_ID: v.string(),
     KPI_CONVEX_R2_SECRET_ACCESS_KEY: v.string(),
     KPI_CONVEX_CATALOG_OBJECT_KEY: v.string(),
+    KPI_CONVEX_SOURCE_KEY: v.string(),
     KPI_CONVEX_CATALOG_PREFIX: v.optional(v.string()),
     KPI_CONVEX_RELEASE_PUBLIC_KEYS_JSON: v.string(),
     KPI_CONVEX_SOURCE_PUBLIC_KEYS_JSON: v.string(),

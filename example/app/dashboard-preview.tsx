@@ -9,7 +9,7 @@ const people = [
 const previewTimestamp = Date.UTC(2026, 8, 18, 9, 0, 0);
 
 const summaries: DashboardSummary[] = [
-  { id: "direzione", name: "Direzione", description: "Indicatori di sintesi per il comitato di direzione.", widgetCount: 3, isFavorite: true, favoriteCount: 2, favoritedBy: people, createdAt: previewTimestamp, updatedAt: previewTimestamp },
+  { id: "direzione", name: "Direzione", description: "Indicatori di sintesi per il comitato di direzione.", widgetCount: 3, isFavorite: true, canEdit: true, containsIndicator: false, favoriteCount: 2, favoritedBy: people, createdAt: previewTimestamp, updatedAt: previewTimestamp },
 ];
 
 const points = [

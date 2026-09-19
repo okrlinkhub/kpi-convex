@@ -85,6 +85,140 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         Name
       >;
     };
+    dashboards: {
+      addWidget: FunctionReference<
+        "mutation",
+        "internal",
+        { dashboardId: string; indicatorKey: string; viewerKey: string },
+        null,
+        Name
+      >;
+      addWidgetToDashboards: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          dashboardIds: Array<string>;
+          indicatorKey: string;
+          viewerKey: string;
+        },
+        {
+          addedDashboardIds: Array<string>;
+          alreadyPresentDashboardIds: Array<string>;
+        },
+        Name
+      >;
+      create: FunctionReference<
+        "mutation",
+        "internal",
+        { indicatorKeys: Array<string>; name: string; viewerKey: string },
+        string,
+        Name
+      >;
+      get: FunctionReference<
+        "query",
+        "internal",
+        { dashboardId: string; viewerKey: string },
+        {
+          description: string | null;
+          favoriteCount: number;
+          favoritedBy: Array<{
+            displayName: string;
+            isCurrentUser: boolean;
+            userId: string;
+          }>;
+          id: string;
+          isFavorite: boolean;
+          name: string;
+          refreshedAt: number | null;
+          widgets: Array<{
+            chartMode: "pie" | "bar" | "area";
+            current: { period: string; value: number } | null;
+            delta: number | null;
+            domain: string;
+            indicatorKey: string;
+            label: string;
+            points: Array<{ period: string; value: number }>;
+            previous: { period: string; value: number } | null;
+            refreshedAt: number | null;
+            sortOrder: number;
+            status: "ready" | "pending" | "missing";
+            unit: string;
+            widgetId: string;
+          }>;
+        } | null,
+        Name
+      >;
+      list: FunctionReference<
+        "query",
+        "internal",
+        { indicatorKey?: string; viewerKey: string },
+        Array<{
+          canEdit: boolean;
+          containsIndicator: boolean;
+          createdAt: number;
+          description: string | null;
+          favoriteCount: number;
+          favoritedBy: Array<{
+            displayName: string;
+            isCurrentUser: boolean;
+            userId: string;
+          }>;
+          id: string;
+          isFavorite: boolean;
+          name: string;
+          updatedAt: number;
+          widgetCount: number;
+        }>,
+        Name
+      >;
+      picker: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{ domain: string; indicatorKey: string; label: string }>,
+        Name
+      >;
+      remove: FunctionReference<
+        "mutation",
+        "internal",
+        { dashboardId: string; viewerKey: string },
+        null,
+        Name
+      >;
+      removeWidget: FunctionReference<
+        "mutation",
+        "internal",
+        { dashboardId: string; viewerKey: string; widgetId: string },
+        null,
+        Name
+      >;
+      reorderWidgets: FunctionReference<
+        "mutation",
+        "internal",
+        { dashboardId: string; viewerKey: string; widgetIds: Array<string> },
+        null,
+        Name
+      >;
+      setWidgetChartMode: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          dashboardId: string;
+          mode: "pie" | "bar" | "area";
+          viewerKey: string;
+          widgetId: string;
+        },
+        null,
+        Name
+      >;
+      toggleFavorite: FunctionReference<
+        "mutation",
+        "internal",
+        { dashboardId: string; viewerKey: string },
+        boolean,
+        Name
+      >;
+    };
     favorites: {
       list: FunctionReference<
         "query",

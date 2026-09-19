@@ -13,13 +13,6 @@ export type KpiCatalogState = {
   view: KpiCatalogView;
 };
 
-export type KpiSavedView = {
-  viewKey: string;
-  name: string;
-  definition: unknown;
-  updatedAt: number;
-};
-
 export type DashboardFavoritePerson = {
   userId: string;
   displayName: string;
@@ -32,10 +25,17 @@ export type DashboardSummary = {
   description: string | null;
   widgetCount: number;
   isFavorite: boolean;
+  canEdit: boolean;
+  containsIndicator: boolean;
   favoriteCount: number;
   favoritedBy: DashboardFavoritePerson[];
   createdAt: number;
   updatedAt: number;
+};
+
+export type DashboardBatchAddResult = {
+  addedDashboardIds: string[];
+  alreadyPresentDashboardIds: string[];
 };
 
 export type DashboardWidget = {
@@ -78,20 +78,4 @@ export function formatKpiValue(point: KpiPoint | null, unit: string) {
 
 export function formatKpiDate(value: string | number | null) {
   return value === null ? "—" : new Date(value).toLocaleDateString("it-IT");
-}
-
-export function parseSavedView(value: unknown): KpiCatalogState | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const item = value as Record<string, unknown>;
-  if (typeof item.query !== "string" || typeof item.descending !== "boolean") return null;
-  if (item.sort !== "label" && item.sort !== "domain" && item.sort !== "value" && item.sort !== "updated") return null;
-  if (item.view !== "table" && item.view !== "cards") return null;
-  if (item.domain !== undefined && typeof item.domain !== "string") return null;
-  return {
-    query: item.query,
-    ...(item.domain ? { domain: item.domain } : {}),
-    sort: item.sort,
-    descending: item.descending,
-    view: item.view,
-  };
 }
