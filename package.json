@@ -1,6 +1,6 @@
 {
   "name": "@okrlinkhub/kpi-convex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Single-source KPI catalog, projections, live detail and reusable React UI for Convex applications.",
   "repository": "github:okrlinkhub/kpi-convex",
   "homepage": "https://github.com/okrlinkhub/kpi-convex#readme",

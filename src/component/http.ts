@@ -21,11 +21,21 @@ http.route({
     const timestamp = Date.parse(payload.timestamp);
     if (!Number.isFinite(timestamp) || Math.abs(Date.now() - timestamp) > 5 * 60_000) return new Response("Expired callback", { status: 401 });
     try {
-      const accepted = await ctx.runMutation(internal.internal.acceptCallback, {
+      const args = {
         eventId: payload.eventId,
         sourceRunId: payload.sourceRunId,
         releaseVersion: payload.releaseVersion,
-      });
+      };
+      let accepted;
+      try {
+        accepted = await ctx.runMutation(internal.internal.acceptCallback, args);
+      } catch (error) {
+        if (!(error instanceof Error) || !/RELEASE_NOT_FOUND/.test(error.message)) throw error;
+        // A valid values-ready event may arrive before the hourly catalog poll.
+        // Refresh only from the signed configured pointer, then require an exact match.
+        await ctx.runAction(internal.syncActions.refreshCatalog, {});
+        accepted = await ctx.runMutation(internal.internal.acceptCallback, args);
+      }
       if (!accepted.duplicate && accepted.generationId && accepted.releaseId) await ctx.scheduler.runAfter(0, internal.workers.projectBatch, { generationId: accepted.generationId, releaseId: accepted.releaseId });
       return Response.json({ accepted: true, duplicate: accepted.duplicate }, { status: accepted.duplicate ? 200 : 202 });
     } catch (error) {

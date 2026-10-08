@@ -15,22 +15,23 @@ export const getRuntimeState = internalQuery({
     const state = await getState(ctx);
     if (!state) return null;
     let selectedReleaseFingerprint: string | null = null;
+    let selectedReleaseVersion: string | null = null;
     if (state.candidateReleaseId) {
-      selectedReleaseFingerprint =
-        (await ctx.db.get("catalogReleases", state.candidateReleaseId))
-          ?.fingerprint ?? null;
+      const release = await ctx.db.get("catalogReleases", state.candidateReleaseId);
+      selectedReleaseFingerprint = release?.fingerprint ?? null;
+      selectedReleaseVersion = release?.releaseVersion ?? null;
     } else if (state.activeGenerationId) {
       const generation = await ctx.db.get(
         "projectionGenerations",
         state.activeGenerationId,
       );
       if (generation) {
-        selectedReleaseFingerprint =
-          (await ctx.db.get("catalogReleases", generation.releaseId))
-            ?.fingerprint ?? null;
+        const release = await ctx.db.get("catalogReleases", generation.releaseId);
+        selectedReleaseFingerprint = release?.fingerprint ?? null;
+        selectedReleaseVersion = release?.releaseVersion ?? null;
       }
     }
-    return { ...state, selectedReleaseFingerprint };
+    return { ...state, selectedReleaseFingerprint, selectedReleaseVersion };
   },
 });
 
@@ -111,9 +112,13 @@ export const acceptCallback = internalMutation({
     const duplicate = await ctx.db.query("processedCallbacks").withIndex("by_event", (q) => q.eq("eventId", args.eventId)).unique();
     if (duplicate) return { duplicate: true as const, generationId: null, releaseId: null };
     const state = await ensureState(ctx);
-    if (!state.candidateReleaseId) throw new Error("RELEASE_NOT_FOUND: no verified candidate release");
-    const release = await ctx.db.get("catalogReleases", state.candidateReleaseId);
-    if (!release || release.releaseVersion !== args.releaseVersion) throw new Error("RELEASE_NOT_FOUND: callback release does not match candidate");
+    // Repeated values use the active verified catalog after its candidate is consumed.
+    // A newer candidate takes precedence, so an older callback cannot roll it back.
+    const active = !state.candidateReleaseId && state.activeGenerationId
+      ? await ctx.db.get("projectionGenerations", state.activeGenerationId) : null;
+    const releaseId = state.candidateReleaseId ?? active?.releaseId;
+    const release = releaseId ? await ctx.db.get("catalogReleases", releaseId) : null;
+    if (!release || release.releaseVersion !== args.releaseVersion) throw new Error("RELEASE_NOT_FOUND: callback release does not match a verified catalog");
     const existing = await ctx.db.query("projectionGenerations").withIndex("by_source_run", (q) => q.eq("sourceRunId", args.sourceRunId)).unique();
     await ctx.db.insert("processedCallbacks", { eventId: args.eventId, sourceRunId: args.sourceRunId, receivedAt: Date.now() });
     if (existing) return { duplicate: true as const, generationId: existing._id, releaseId: existing.releaseId };
@@ -151,9 +156,9 @@ export const activateGeneration = internalMutation({
     await ctx.db.patch("catalogReleases", generation.releaseId, { status: "active" });
     if (oldActive) {
       const old = await ctx.db.get("projectionGenerations", oldActive);
-      if (old) await ctx.db.patch("catalogReleases", old.releaseId, { status: "previous" });
+      if (old && old.releaseId !== generation.releaseId) await ctx.db.patch("catalogReleases", old.releaseId, { status: "previous" });
     }
-    await ctx.db.patch("componentState", state._id, { activeGenerationId: generationId, previousGenerationId: oldActive, candidateReleaseId: undefined, lastProjectedAt: Date.now(), lastErrorCode: undefined, lastErrorMessage: undefined });
+    await ctx.db.patch("componentState", state._id, { activeGenerationId: generationId, previousGenerationId: oldActive, ...(state.candidateReleaseId === generation.releaseId ? { candidateReleaseId: undefined } : {}), lastProjectedAt: Date.now(), lastErrorCode: undefined, lastErrorMessage: undefined });
   },
 });
 

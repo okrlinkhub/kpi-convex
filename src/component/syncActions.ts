@@ -144,7 +144,8 @@ export const refreshCatalog = internalAction({
         const state = await ctx.runQuery(internal.internal.getRuntimeState, {});
         if (
           state?.pointerFingerprint === source.manifestSha256 &&
-          state.selectedReleaseFingerprint === source.manifestSha256
+          state.selectedReleaseFingerprint === source.manifestSha256 &&
+          state.selectedReleaseVersion === envelope.release.targetReleaseVersion
         ) {
           await ctx.runMutation(internal.internal.markChecked, {});
           return { status: "unchanged" as const };
